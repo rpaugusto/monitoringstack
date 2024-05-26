@@ -18,10 +18,9 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
 
 ## Prerequisites
 
-- Docker
-- Docker Compose
-- Vagrant
-- VirtualBox
+1. VirtualBox
+2. Vagrant 
+3. Docker
 
 ## Installation
 
