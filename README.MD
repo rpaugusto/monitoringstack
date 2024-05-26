@@ -57,7 +57,7 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
 - Restart Prometheus to apply the changes.
 
 ## Directory Structure
->  
+```
 >  monitoringstack/
 >  │   monitoring-setup/
 >  │   ├── docker-compose.yml
@@ -77,7 +77,7 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
 >  │   │           └── dashboards.yml
 >  │   └── zabbix/
 >  └── Vagrantfile
->  
+```
 
 ## Vagrant Setup
 
