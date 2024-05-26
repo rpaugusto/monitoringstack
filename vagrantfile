@@ -1,0 +1,20 @@
+Vagrant.configure("2") do |config|
+
+    # Set the basic info box
+    config.vm.hostname = "vboxBionicZbx"
+    config.vm.box = "ubuntu/bionic64" # Ubuntu 18.04 LTS
+    config.vm.boot_timeout = 600
+    
+    # Public network configuration using the active interface on the host
+    config.vm.network "public_network", bridge: "Realtek 8822CE Wireless LAN 802.11ac PCI-E NIC", ip: "192.168.0.100"
+  
+    # Configure Resource for VM
+    config.vm.provider "virtualbox" do |vb|
+      vb.memory = "4096"
+      vb.cpus = 2
+    end
+    
+    config.vm.synced_folder "./monitoring-setup", "/vagrant"
+
+  end
+  

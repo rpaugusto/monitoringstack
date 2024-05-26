@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  zabbix-grafana:
+    container_name: zabbix-grafana
+    hostname: zabbix-grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/datasources:/etc/grafana/datasources
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    user: "0"
+    ports:
+      - "3000:3000"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.21
+
+  grafana-renderer:
+    image: grafana/grafana-image-renderer:latest
+    container_name: grafana-renderer
+    restart: unless-stopped
+    env_file: .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.22
+
+  prometheus-server:
+    image: prom/prometheus:latest
+    container_name: prometheus-server
+    restart: always
+    tty: true
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.31
+
+  prometheus-blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: prometheus-blackbox
+    restart: always
+    tty: true
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    ports:
+      - "9115:9115"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.32
+
+networks:
+  network-monitor:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/16
+          gateway: 10.0.0.1
