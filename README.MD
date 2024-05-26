@@ -58,25 +58,25 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
 
 ## Directory Structure
 ```
->  monitoringstack/
->  │   monitoring-setup/
->  │   ├── docker-compose.yml
->  │   ├── .env
->  │   ├── prometheus/
->  │   │   └── prometheus.yml
->  │   ├── blackbox/
->  │   │   └── blackbox.yml
->  │   ├── grafana/
->  │   │   ├── dashboards/
->  │   │   │   ├── blackbox-exporter.json
->  │   │   │   └── sample-dashboard.json
->  │   │   └── provisioning/
->  │   │       ├── datasources/
->  │   │       │   └── datasources.yml
->  │   │       └── dashboards/
->  │   │           └── dashboards.yml
->  │   └── zabbix/
->  └── Vagrantfile
+  monitoringstack/
+  │   monitoring-setup/
+  │   ├── docker-compose.yml
+  │   ├── .env
+  │   ├── prometheus/
+  │   │   └── prometheus.yml
+  │   ├── blackbox/
+  │   │   └── blackbox.yml
+  │   ├── grafana/
+  │   │   ├── dashboards/
+  │   │   │   ├── blackbox-exporter.json
+  │   │   │   └── sample-dashboard.json
+  │   │   └── provisioning/
+  │   │       ├── datasources/
+  │   │       │   └── datasources.yml
+  │   │       └── dashboards/
+  │   │           └── dashboards.yml
+  │   └── zabbix/
+  └── Vagrantfile
 ```
 
 ## Vagrant Setup
