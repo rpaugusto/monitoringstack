@@ -64,6 +64,245 @@ services:
       network-monitor:
         ipv4_address: 10.0.0.32
 
+  #---------------------------------------------------#
+  #  ZABBIX-MYSQL -  MYSQL DATABASE FOR ZABBIX        #
+  #---------------------------------------------------#
+  zabbix-mysql:
+    container_name: zabbix-mysql
+    hostname: zabbix-mysql
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_bin
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4 
+      - --collation-server=utf8mb4_bin
+      - --log-bin-trust-function-creators=1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # ports:
+    #   - "3306:3306"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.2
+  
+  #---------------------------------------------------------------#
+  #  ZABBIX-SERVER - Monitoring tool for Network and Sistems      #
+  #---------------------------------------------------------------#
+  zabbix-server:
+    container_name: zabbix-server
+    hostname: zabbix-server
+    image: zabbix/zabbix-server-mysql:${ZBX_VERSION}
+    environment:
+      DB_SERVER_HOST: zabbix-mysql
+      DB_SERVER_PORT: ${MYSQL_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      ZBX_ENABLE_SNMP_TRAPS: ${ZBX_ENABLE_SNMP_TRAPS}
+      ZBX_STARTPOLLERS: ${ZBX_STARTPOLLERS}
+      ZBX_STARTPINGERS: ${ZBX_STARTPINGERS}
+      ZBX_STARTTRAPPERS: ${ZBX_STARTTRAPPERS}
+      ZBX_STARTDISCOVERERS: ${ZBX_STARTDISCOVERERS}
+      ZBX_STARTHTTPPOLLERS: ${ZBX_STARTHTTPPOLLERS}
+      ZBX_LISTENPORT: ${ZBX_LISTENPORT}
+      ZBX_HOUSEKEEPINGFREQUENCY: ${ZBX_HOUSEKEEPINGFREQUENCY}
+      ZBX_MAXHOUSEKEEPERDELETE: ${ZBX_MAXHOUSEKEEPERDELETE}
+      ZBX_PROBLEMHOUSEKEEPINGFREQUENCY: ${ZBX_PROBLEMHOUSEKEEPINGFREQUENCY}
+      ZBX_SENDERFREQUENCY: ${ZBX_SENDERFREQUENCY}
+      ZBX_CACHEUPDATEFREQUENCY: ${ZBX_CACHEUPDATEFREQUENCY}
+      ZBX_STARTDBSYNCERS: ${ZBX_STARTDBSYNCERS}
+      ZBX_EXPORTFILESIZE: ${ZBX_EXPORTFILESIZE}
+      ZBX_CACHESIZE: ${ZBX_CACHESIZE}
+      ZBX_HISTORYCACHESIZE: ${ZBX_HISTORYCACHESIZE}
+      ZBX_HISTORYINDEXCACHESIZE: ${ZBX_HISTORYINDEXCACHESIZE}
+      ZBX_HISTORYSTORAGEDATEINDEX: ${ZBX_HISTORYSTORAGEDATEINDEX}
+      ZBX_TRENDCACHESIZE: ${ZBX_TRENDCACHESIZE}
+      ZBX_TRENDFUNCTIONCACHESIZE: ${ZBX_TRENDFUNCTIONCACHESIZE}
+      ZBX_VALUECACHESIZE: ${ZBX_VALUECACHESIZE}
+      ZBX_UNREACHABLEPERIOD: ${ZBX_UNREACHABLEPERIOD}
+      ZBX_UNAVAILABLEDELAY: ${ZBX_UNAVAILABLEDELAY}
+      ZBX_UNREACHABLEDELAY: ${ZBX_UNREACHABLEDELAY}
+      ZBX_LOGSLOWQUERIES: ${ZBX_LOGSLOWQUERIES}
+      ZBX_STARTREPORTWRITERS: 1
+      ZBX_STARTCONNECTORS: 1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    depends_on:
+      - zabbix-mysql
+    #  - zabbix-snmptraps
+    deploy:
+      restart_policy:
+        condition: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # ports:
+    #   - "10051:10051"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.4
+
+  #-----------------------------------------------------------------#
+  #  ZABBIX-FRONTEND                                                #
+  #-----------------------------------------------------------------#
+  zabbix-frontend:
+    container_name: zabbix-frontend
+    hostname: zabbix-frontend
+    image: zabbix/zabbix-web-nginx-mysql:${ZBX_VERSION}
+    restart: unless-stopped
+    environment:
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+      DB_SERVER_HOST: zabbix-mysql
+      DB_SERVER_PORT: ${MYSQL_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PHP_TZ: ${PHP_TZ}
+      ZBX_POSTMAXSIZE: ${ZBX_POSTMAXSIZE}
+      ZBX_MAXEXECUTIONTIME: ${ZBX_MAXEXECUTIONTIME}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./nginx/status.conf:/etc/nginx/http.d/nginxstatus.conf:ro
+      #- ./nginxstatus.conf:/etc/nginx/conf.d/nginxstatus.conf:ro
+    deploy:
+      restart_policy:
+        condition: unless-stopped
+    depends_on:
+      - zabbix-server
+    ports:
+      - "80:8080"
+      - "443:8443"
+      - "81:8081"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.5
+
+  #---------------------------------------------------------#
+  #  ZABBIX-AGENT - DATA COLLECTION                         #
+  #---------------------------------------------------------#
+  #
+  # Nota: Exec in host
+  # usermod -aG docker ${USER}
+  # usermod -aG docker zabbix
+  # chmod 666 /var/run/docker.sock
+  # apt install zabbix-get -y
+  # zabbix_get -s <pi-host> -k docker.info
+  #
+  zabbix-agent:
+    container_name: zabbix-agent
+    hostname: zabbix-agent
+    image: zabbix/zabbix-agent2:latest
+    user: root
+    restart: unless-stopped
+    privileged: true
+    environment:
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+      ZBX_HOSTNAME: zabbix-agent
+      ZBX_DEBUGLEVEL: ${ZBX_DEBUGLEVEL}
+      ZBX_HOSTNAMEITEM: ${ZBX_HOSTNAMEITEM}
+      DOCKER_GID: 996
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      restart_policy:
+        condition: unless-stopped
+    links:
+      - zabbix-server
+    depends_on:
+      - zabbix-server
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.6
+  
+  #-----------------------------------------------------------------#
+  #  ZABBIX-WEBSERVICE                                              #
+  #-----------------------------------------------------------------#
+  zabbix-webservice:
+    container_name: zabbix-webservice
+    hostname: zabbix-webservice
+    image: zabbix/zabbix-web-service:${ZBX_VERSION}
+    restart: unless-stopped
+    environment:
+      ZBX_ALLOWEDIP: ${ZBX_SERVER_HOST}, zabbix-frontend
+      ZBX_TLSACCEPT: unencrypted
+      ZBX_DEBUGLEVEL: 4
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    deploy:
+      restart_policy:
+        condition: unless-stopped
+    depends_on:
+      - zabbix-server
+      - zabbix-frontend
+    ports:
+      - "10053:10053"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.8   
+
+  #-----------------------------------------------------------------#
+  #  ZABBIX-Java Gateway                                            #
+  #-----------------------------------------------------------------#
+  zabbix-jmxgate:
+    container_name: zabbix-javagate
+    hostname: zabbix-javagate
+    image: zabbix/zabbix-java-gateway:${ZBX_VERSION}
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    deploy:
+      restart_policy:
+        condition: unless-stopped
+    depends_on:
+      - zabbix-server
+    ports:
+      - "10052:10052"
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.9
+
+  #---------------------------------------------------------------#
+  #  ZABBIX-SNMPTRAPS - Receive SNMP Traps                        #
+  #---------------------------------------------------------------#
+  zabbix-snmptraps:
+    container_name: zabbix-snmptraps
+    hostname: zabbix-snmptraps
+    image: zabbix/zabbix-snmptraps:${ZBX_VERSION}
+    depends_on:
+      - zabbix-server
+    environment:
+      ZBX_HOSTNAME: zabbix-snmptraps
+      ZBX_SERVER_HOST: ${ZBX_SERVER_HOST}
+      ZBX_SERVER_PORT: 10051
+      ZBX_SERVER_NAME: ${ZBX_SERVER_HOST}
+      ZBX_STARTSNMPTRAPPER: ${ZBX_STARTSNMPTRAPPER}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.0.10
+
 networks:
   network-monitor:
     driver: bridge

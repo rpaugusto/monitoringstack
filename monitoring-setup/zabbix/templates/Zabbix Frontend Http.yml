@@ -1,0 +1,73 @@
+zabbix_export:
+  version: '6.0'
+  date: '2024-05-24T18:55:55Z'
+  groups:
+    - uuid: 6f6799aa69e844b4b3918f779f2abf08
+      name: 'Zabbix servers'
+  templates:
+    - uuid: 2dc4a64b765a4457af37a5419a680be1
+      template: 'Zabbix Frontend Http'
+      name: 'Zabbix Frontend Http'
+      groups:
+        - name: 'Zabbix servers'
+      httptests:
+        - uuid: a3b367e6486140f6acdc6a9940bea08c
+          name: 'Zabbix GUI'
+          delay: 5m
+          variables:
+            - name: '{password}'
+              value: '{$URL.PASS}'
+            - name: '{user}'
+              value: '{$URL.USER}'
+          steps:
+            - name: 'Zabbix Ping'
+              url: '{$URL.SCHEME}://{HOST.CONN}:8080/'
+              status_codes: '200'
+            - name: 'Zabbix Login'
+              url: '{$URL.SCHEME}://{HOST.CONN}:8080/index.php'
+              posts:
+                - name: name
+                  value: '{user}'
+                - name: password
+                  value: '{password}'
+                - name: enter
+                  value: 'Sign in'
+              variables:
+                - name: '{sid}'
+                  value: 'regex:name="csrf-token" content="([0-9a-z]{16})"'
+              status_codes: '200'
+            - name: 'Zabbix Login Validate'
+              url: '{$URL.SCHEME}://{HOST.CONN}:8080/index.php'
+              required: Reports
+              status_codes: '200'
+            - name: 'Zabbix Logout'
+              url: '{$URL.SCHEME}://{HOST.CONN}:8080/index.php'
+              query_fields:
+                - name: sid
+                  value: '{sid}'
+                - name: reconnect
+                  value: '1'
+              status_codes: '200'
+            - name: 'Zabbix Logout Verirfication'
+              url: '{$URL.SCHEME}://{HOST.CONN}:8080/index.php'
+              required: Username
+              status_codes: '200'
+          tags:
+            - tag: component
+              value: website
+      tags:
+        - tag: class
+          value: software
+        - tag: target
+          value: frontend
+        - tag: target
+          value: zabbix
+      macros:
+        - macro: '{$URL.PASS}'
+          type: SECRET_TEXT
+          description: 'The password for login step of webpage.'
+        - macro: '{$URL.SCHEME}'
+          value: http
+          description: 'The protocol http or https of webpage.'
+        - macro: '{$URL.USER}'
+          description: 'The username for login step of webpage.'

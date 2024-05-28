@@ -8,3 +8,32 @@ datasources:
     jsonData:
       httpMethod: GET
       tlsSkipVerify: true
+
+  - name: Zabbix
+    type: alexanderzobnin-zabbix-datasource
+    access: proxy
+    url: http://zabbix-frontend:8080/api_jsonrpc.php
+    isDefault: true
+    jsonData:
+      timeout: 60
+      trends: true
+      trendsFrom: 7d
+      trendsRange: 4d
+      cacheTTL: 10m
+      alerting: true
+    secureJsonData:
+      username: Admin
+      password: zabbix
+    basicAuth: false
+
+  - name: MySQL
+    type: mysql
+    access: proxy
+    url: zabbix-mysql:3306
+    user: zbx_monitor
+    database: zbxlabdb
+    secureJsonData:
+      password: zbx4monitor
+    jsonData:
+      tlsAuth: false
+      tlsAuthWithCACert: false

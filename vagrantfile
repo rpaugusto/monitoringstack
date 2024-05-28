@@ -2,11 +2,12 @@ Vagrant.configure("2") do |config|
 
     # Set the basic info box
     config.vm.hostname = "vboxBionicZbx"
-    config.vm.box = "ubuntu/bionic64" # Ubuntu 18.04 LTS
+    config.vm.box = "ubuntu/focal64" # Ubuntu 20.04.6 LTS (Focal Fossa)
     config.vm.boot_timeout = 600
     
     # Public network configuration using the active interface on the host
-    config.vm.network "public_network", bridge: "Realtek 8822CE Wireless LAN 802.11ac PCI-E NIC", ip: "192.168.0.100"
+    # config.vm.network "public_network", bridge: "Realtek 8822CE Wireless LAN 802.11ac PCI-E NIC", ip: "192.168.0.200"
+    config.vm.network "private_network", ip: "192.168.33.10"
   
     # Configure Resource for VM
     config.vm.provider "virtualbox" do |vb|
