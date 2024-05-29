@@ -38,6 +38,7 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
 - Access Grafana at `http://localhost:3000` with the credentials set in the `.env` file.
 - Access Prometheus at `http://localhost:9090`.
 - Access Blackbox Exporter at `http://localhost:9115`.
+- Access Zabbix at `http://localhost:80` with the credentials user `admin` password `Zabbix`.
 
 ## Provisioning
 
@@ -74,7 +75,12 @@ This project sets up a monitoring stack using Docker Compose, featuring Grafana,
   │   │       │   └── datasources.yml
   │   │       └── dashboards/
   │   │           └── dashboards.yml
-  │   └── zabbix/
+  │   ├── zabbix/
+  │   │   ├── Zabbix Frontend Http.yml
+  │   │   └── Docker by Zabbix Agent 2.yml
+  │   └── endipoint/
+  │       ├── dockerfile
+  │       └── app.py
   └── Vagrantfile
 ```
 

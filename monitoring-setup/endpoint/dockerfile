@@ -1,0 +1,23 @@
+# Use a imagem base do Python
+FROM python:3.9-slim
+
+# Atualize o índice de pacotes e instale as dependências necessárias
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure o diretório de trabalho como /app
+WORKDIR /app
+
+# Copie os arquivos de código-fonte para o diretório de trabalho
+COPY app.py /app/app.py
+
+# Instale as dependências Python
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exponha a porta em que o serviço irá escutar
+EXPOSE 5000
+
+# Comando padrão a ser executado quando o contêiner for iniciado
+CMD ["python", "app.py"]
