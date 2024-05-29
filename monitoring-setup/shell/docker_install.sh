@@ -16,8 +16,10 @@ dependencies() {
        software-properties-common \
        curl \
        gnupg \
-       lsb-release
-
+       lsb-release \
+       unzip \
+       python \
+       python-pip
 }
 
 # Install Docker
