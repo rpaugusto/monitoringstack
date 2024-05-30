@@ -309,6 +309,9 @@ services:
     image: endpoint-python  # Substitua pelo nome da imagem do seu serviço Flask
     ports:
       - "5000:5000"  # Mapeamento da porta do host para a porta do contêiner
+    networks:
+      network-monitor:
+        ipv4_address: 10.0.1.101
 
 networks:
   network-monitor:

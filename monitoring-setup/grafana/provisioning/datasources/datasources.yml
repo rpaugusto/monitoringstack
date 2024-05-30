@@ -13,16 +13,15 @@ datasources:
     type: alexanderzobnin-zabbix-datasource
     access: proxy
     url: http://zabbix-frontend:8080/api_jsonrpc.php
-    isDefault: true
     jsonData:
-      timeout: 60
+      authType: "userLogin"
+      cacheTTL: ""
+      disableDataAlignment: false
       trends: true
-      trendsFrom: 7d
-      trendsRange: 4d
-      cacheTTL: 10m
-      alerting: true
+      trendsFrom: ""
+      trendsRange: ""
+      username: "Admin"
     secureJsonData:
-      username: Admin
       password: zabbix
     basicAuth: false
 

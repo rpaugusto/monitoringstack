@@ -49,8 +49,13 @@ def extract_table_data(table):
 
     return data
 
-@app.route('/sefaz')
+@app.route('/')
 def index():
+    return "endpoint Python"
+
+
+@app.route('/sefaz')
+def sefaz():
     # Fazendo uma solicitação GET para a página
     url = 'https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?versao=0.00&tipoConteudo=P2c98tUpxrI='
     response = requests.get(url)
